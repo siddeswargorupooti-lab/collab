@@ -197,4 +197,47 @@
         item.category = category;
         item.type = type;
         item.price = price;
-      } else
+      } else {
+        // Add new
+        menu.push({id: Date.now(), name, category, type, price});
+      }
+
+      saveToStorage();
+      renderTable();
+      clearForm();
+    }
+
+    function editItem(id) {
+      const item = menu.find(i => i.id === id);
+      document.getElementById("formTitle").innerText = "Edit Item";
+      document.getElementById("editId").value = item.id;
+      document.getElementById("itemName").value = item.name;
+      document.getElementById("itemCategory").value = item.category;
+      document.getElementById("itemType").value = item.type;
+      document.getElementById("itemPrice").value = item.price;
+    }
+
+    function deleteItem(id) {
+      if (confirm("Delete this item?")) {
+        menu = menu.filter(i => i.id !== id);
+        saveToStorage();
+        renderTable();
+      }
+    }
+
+    function clearForm() {
+      document.getElementById("formTitle").innerText = "Add New Item";
+      document.getElementById("editId").value = "";
+      document.getElementById("itemName").value = "";
+      document.getElementById("itemCategory").value = "";
+      document.getElementById("itemType").value = "veg";
+      document.getElementById("itemPrice").value = "";
+    }
+
+    document.getElementById("search").addEventListener("input", renderTable);
+    document.getElementById("filterType").addEventListener("change", renderTable);
+
+    renderTable();
+  </script>
+</body>
+</html>
