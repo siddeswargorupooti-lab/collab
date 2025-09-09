@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Restaurant Menu Dashboard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #f5f6fa;
+      color: #333;
+    }
+    header {
+      background: #2d3436;
+      color: #fff;
+      padding: 1rem 2rem;
+      text-align: center;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 1.5rem;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 20px auto;
+      padding: 20px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    input, select, button {
+      padding: 8px 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    button {
+      background: #0984e3;
+      color: #fff;
+      cursor: pointer;
+      border: none;
+    }
+    button:hover {
+      background: #74b9ff;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: left;
+    }
+    th {
+      background: #f1f2f6;
+    }
+    .veg { color: green; font-weight: bold; }
+    .nonveg { color: red; font-weight: bold; }
+    .actions button {
+      background: #d63031;
+      margin-left: 5px;
+    }
+    .actions button:hover {
+      background: #ff7675;
+    }
+    .form-section {
+      margin-top: 20px;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background: #fafafa;
+    }
+    .form-section h3 { margin-top: 0; }
+    .form-section div {
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Restaurant Menu & Pricing Dashboard</h1>
+  </header>
+
+  <div class="container">
+    <!-- Controls -->
+    <div class="controls">
+      <input type="text" id="search" placeholder="Search by name or category">
+      <select id="filterType">
+        <option value="all">All</option>
+        <option value="veg">Veg</option>
+        <option value="nonveg">Non-Veg</option>
+      </select>
+    </div>
+
+    <!-- Table -->
+    <table id="menuTable">
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th>Category</th>
+          <th>Type</th>
+          <th>Price (₹)</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <!-- Add/Edit Form -->
+    <div class="form-section">
+      <h3 id="formTitle">Add New Item</h3>
+      <div>
+        <input type="hidden" id="editId">
+        <input type="text" id="itemName" placeholder="Item name">
+      </div>
+      <div>
+        <input type="text" id="itemCategory" placeholder="Category">
+      </div>
+      <div>
+        <select id="itemType">
+          <option value="veg">Veg</option>
+          <option value="nonveg">Non-Veg</option>
+        </select>
+      </div>
+      <div>
+        <input type="number" id="itemPrice" placeholder="Price ₹">
+      </div>
+      <div>
+        <button onclick="saveItem()">Save Item</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let menu = JSON.parse(localStorage.getItem("restaurantMenu")) || [
+      {id: Date.now(), name:"Masala Dosa", category:"South Indian", type:"veg", price:120},
+      {id: Date.now()+1, name:"Paneer Tikka", category:"Starters", type:"veg", price:260},
+      {id: Date.now()+2, name:"Butter Chicken", category:"North Indian", type:"nonveg", price:340}
+    ];
+
+    function saveToStorage() {
+      localStorage.setItem("restaurantMenu", JSON.stringify(menu));
+    }
+
+    function renderTable() {
+      const search = document.getElementById("search").value.toLowerCase();
+      const filter = document.getElementById("filterType").value;
+      const tbody = document.querySelector("#menuTable tbody");
+      tbody.innerHTML = "";
+
+      menu
+        .filter(item => {
+          const matchesSearch = item.name.toLowerCase().includes(search) || item.category.toLowerCase().includes(search);
+          const matchesFilter = filter === "all" || item.type === filter;
+          return matchesSearch && matchesFilter;
+        })
+        .forEach(item => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${item.name}</td>
+            <td>${item.category}</td>
+            <td class="${item.type}">${item.type === "veg" ? "Veg" : "Non-Veg"}</td>
+            <td>₹${item.price}</td>
+            <td class="actions">
+              <button onclick="editItem(${item.id})">Edit</button>
+              <button onclick="deleteItem(${item.id})">Delete</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+    }
+
+    function saveItem() {
+      const name = document.getElementById("itemName").value;
+      const category = document.getElementById("itemCategory").value;
+      const type = document.getElementById("itemType").value;
+      const price = document.getElementById("itemPrice").value;
+      const editId = document.getElementById("editId").value;
+
+      if (!name || !category || !price) {
+        alert("Please fill all fields");
+        return;
+      }
+
+      if (editId) {
+        // Update
+        const item = menu.find(i => i.id == editId);
+        item.name = name;
+        item.category = category;
+        item.type = type;
+        item.price = price;
+      } else
